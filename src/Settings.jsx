@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/ThemeContext';
 import { useUI } from './context/UIContext';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const Settings = () => {
     const { user } = useAuth();
@@ -15,6 +16,46 @@ const Settings = () => {
     const [matchAlerts, setMatchAlerts] = useState(() => localStorage.getItem('setting_matchAlerts') !== 'false');
     const [claimUpdates, setClaimUpdates] = useState(() => localStorage.getItem('setting_claimUpdates') !== 'false');
     const [emailAlerts, setEmailAlerts] = useState(() => localStorage.getItem('setting_emailAlerts') === 'true');
+
+    // Password Update State
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+            showToast('Please fill in all password fields.', 'error');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showToast('New password must be at least 6 characters long.', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            showToast('New passwords do not match.', 'error');
+            return;
+        }
+
+        setIsUpdatingPassword(true);
+
+        try {
+            // Simulate API call to update password
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            showToast('Password updated successfully!', 'success');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmNewPassword('');
+        } catch (error) {
+            showToast('Failed to update password. Please try again.', 'error');
+        } finally {
+            setIsUpdatingPassword(false);
+        }
+    };
 
     const handleToggleSetting = (settingName, currentValue, setterFunc) => {
         const newValue = !currentValue;
@@ -277,32 +318,45 @@ const Settings = () => {
                                             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage your password and account security.</p>
                                         </div>
 
-                                        <form className="space-y-4 max-w-md">
+                                        <form className="space-y-4 max-w-md" onSubmit={handlePasswordUpdate}>
                                             <div className="space-y-1">
                                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Current Password</label>
                                                 <input
                                                     type="password"
-                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white"
+                                                    value={currentPassword}
+                                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                                    disabled={isUpdatingPassword}
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">New Password</label>
                                                 <input
                                                     type="password"
-                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white"
+                                                    value={newPassword}
+                                                    onChange={(e) => setNewPassword(e.target.value)}
+                                                    disabled={isUpdatingPassword}
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirm New Password</label>
                                                 <input
                                                     type="password"
-                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white"
+                                                    value={confirmNewPassword}
+                                                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                                    disabled={isUpdatingPassword}
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
 
                                             <div className="pt-4">
-                                                <button type="submit" className="px-6 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors">
-                                                    Update Password
+                                                <button
+                                                    type="submit"
+                                                    disabled={isUpdatingPassword}
+                                                    className="px-6 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                                                >
+                                                    {isUpdatingPassword ? <LoadingSpinner size="sm" color="white" /> : 'Update Password'}
                                                 </button>
                                             </div>
                                         </form>
