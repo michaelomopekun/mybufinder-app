@@ -114,6 +114,39 @@ const AllReports = () => {
         }
     };
 
+    const handleDeleteItem = async (itemId) => {
+        const confirmed = await showConfirm({
+            title: 'Delete Approved Item',
+            message: 'Are you sure you want to delete this approved item? This action cannot be undone.',
+            type: 'danger',
+            confirmText: 'Delete'
+        });
+        if (!confirmed) return;
+
+        try {
+            const baseUrl = process.env.NODE_ENV === 'development' ? '' : (process.env.REACT_APP_BASE_URL || 'https://bufinderbackend-production.up.railway.app');
+            const response = await fetch(`${baseUrl}/items/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => null);
+                throw new Error(errData?.message || 'Failed to delete item.');
+            }
+
+            setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+            showToast('Approved item report deleted successfully', 'success');
+
+        } catch (err) {
+            console.error('Error trying to delete item:', err);
+            showToast(err.message || 'Failed to delete item.', 'error');
+        }
+    };
+
     const filteredItems = items.filter(item =>
         (item.title && item.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -300,6 +333,11 @@ const AllReports = () => {
                                                                         <span className="material-symbols-outlined text-[18px]">flag</span>
                                                                     </button>
                                                                 </>
+                                                            )}
+                                                            {report.status === 'APPROVED' && (
+                                                                <button onClick={() => handleDeleteItem(report.id)} className="size-8 flex items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-600" title="Delete">
+                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                </button>
                                                             )}
                                                         </div>
                                                     </td>

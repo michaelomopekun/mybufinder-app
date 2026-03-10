@@ -41,7 +41,17 @@ const VerifyOwnershipModal = ({ isOpen, onClose, item, onSubmit }) => {
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
+                    const text = await response.text();
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(text);
+                    } catch (e) {
+                        // This handles situations where the backend throws an HTML "Proxy Error" instead of JSON
+                        if (text.includes('Proxy error') || text.includes('<!DOCTYPE html>')) {
+                            throw new Error('Server is temporarily unavailable (Proxy Error). Please try again soon.');
+                        }
+                        throw new Error('Server returned an invalid response. Please try again later.');
+                    }
                     throw new Error(errorData.message || 'Failed to submit claim.');
                 }
 
